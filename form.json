@@ -1,0 +1,15 @@
+{
+	"field": "활동보조30분단가",
+	"steps": [
+		{
+			"op": "multiply",
+			"inputs": ["기본단가", 0.5],
+			"output": "temp1"
+		},
+		{
+			"op": "rounddown",
+			"inputs": ["temp1", -1],
+			"output": "활동보조30분단가"
+		}
+	]
+}
