@@ -3,7 +3,7 @@
 hwpx → Markdown 변환기
 
 사용법:
-    python hwpx_to_md.py 입력파일.hwpx [출력파일.md]
+    python -m app.hwpx_to_md 입력파일.hwpx [출력파일.md]
 
 동작:
     1. hwpx(ZIP 컨테이너)를 임시 폴더에 압축 해제
@@ -66,9 +66,7 @@ def table_to_md(tbl: ET.Element) -> str:
                 r, c = int(addr.get("rowAddr")), int(addr.get("colAddr"))
             else:
                 r = tr_idx
-                c = next(
-                    (i for i, v in enumerate(grid[r]) if v is None), 0
-                )
+                c = next((i for i, v in enumerate(grid[r]) if v is None), 0)
             rs = int(span.get("rowSpan", "1")) if span is not None else 1
             cs = int(span.get("colSpan", "1")) if span is not None else 1
 
@@ -129,7 +127,7 @@ def hwpx_to_md(hwpx_path: str) -> str:
     md_sections = []
     with tempfile.TemporaryDirectory() as tmpdir:
         # 1단계: ZIP 압축 해제
-        with zipfile.ZipFile(hwpx_path) as zf:
+        with zipfile.ZipFile("hwpx_files/" + hwpx_path) as zf:
             zf.extractall(tmpdir)
 
         # 2단계: section0.xml, section1.xml ... 순서대로 파싱
@@ -139,7 +137,9 @@ def hwpx_to_md(hwpx_path: str) -> str:
             key=lambda f: int(re.search(r"\d+", f.stem).group()),
         )
         if not sections:
-            raise FileNotFoundError("Contents/section*.xml을 찾을 수 없습니다. hwpx 파일이 맞는지 확인하세요.")
+            raise FileNotFoundError(
+                "Contents/section*.xml을 찾을 수 없습니다. hwpx 파일이 맞는지 확인하세요."
+            )
 
         # 3단계: 각 섹션을 Markdown으로 변환
         for sec in sections:
@@ -154,7 +154,11 @@ def main():
         sys.exit(1)
 
     src = sys.argv[1]
-    dst = sys.argv[2] if len(sys.argv) > 2 else str(Path(src).with_suffix(".md"))
+    dst = (
+        sys.argv[2]
+        if len(sys.argv) > 2
+        else "md_files/" + str(Path(src).with_suffix(".md"))
+    )
 
     md = hwpx_to_md(src)
     Path(dst).write_text(md, encoding="utf-8")
