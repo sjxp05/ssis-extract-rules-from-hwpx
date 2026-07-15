@@ -7,7 +7,6 @@ rule_sentences = """
 [
     {
         "field": "본인부담금",
-        "params": ["등급", "월한도액", "본인부담금상한액"],
         "steps": [
             {"op": "lookup_default", "inputs": ["등급", "본인부담률", 0], "output": "rate"},
             {"op": "multiply", "inputs": ["월한도액", "rate"], "output": "temp1"},
@@ -18,7 +17,6 @@ rule_sentences = """
     },
     {
         "field": "확장형본인부담금",
-        "params": ["등급", "확장형월한도액", "본인부담금상한액"],
         "steps": [
             {"op": "lookup_default", "inputs": ["등급", "본인부담률", 0], "output": "rate"},
             {"op": "multiply", "inputs": ["확장형월한도액", "rate"], "output": "temp1"},
@@ -29,7 +27,6 @@ rule_sentences = """
     },
     {
         "field": "확장형월한도액",
-        "params": ["월한도액", "기본단가"],
         "steps": [
             {"op": "multiply", "inputs": ["기본단가", 22], "output": "temp1"},
             {"op": "subtract", "inputs": ["월한도액", "temp1"], "output": "temp2"},
@@ -38,7 +35,6 @@ rule_sentences = """
     },
     {
         "field": "활동보조30분",
-        "params": ["기본단가"],
         "steps": [
             {"op": "multiply", "inputs": ["기본단가", 0.5], "output": "temp1"},
             {"op": "rounddown", "inputs": ["temp1", -1], "output": "활동보조30분"}
@@ -46,7 +42,6 @@ rule_sentences = """
     },
     {
         "field": "활동보조30분심야",
-        "params": ["기본단가"],
         "steps": [
             {"op": "multiply", "inputs": ["기본단가", 0.5], "output": "temp1"},
             {"op": "rounddown", "inputs": ["temp1", -1], "output": "temp2"},
@@ -56,7 +51,6 @@ rule_sentences = """
     },
     {
         "field": "방문목욕40분",
-        "params": ["방문목욕기본단가"],
         "steps": [
             {"op": "multiply", "inputs": ["방문목욕기본단가", 0.8], "output": "temp1"},
             {"op": "rounddown", "inputs": ["temp1", -1], "output": "방문목욕40분"}
