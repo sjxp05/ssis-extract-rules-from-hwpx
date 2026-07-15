@@ -1,5 +1,5 @@
-from calc.constants import CONSTANTS
-from calc.json_format import JsonFormat, StepFormat
+from app.calc.constants import CONSTANTS
+from app.calc.json_format import JsonFormat, StepFormat
 import math
 import json
 
@@ -7,11 +7,24 @@ rule_sentences = """
 [
     {
         "field": "본인부담금",
-        "params": ["월한도액", "본인부담률", "본인부담금상한액"],
+        "params": ["등급", "월한도액", "본인부담금상한액"],
         "steps": [
-            {"op": "multiply", "inputs": ["월한도액", "본인부담률"], "output": "temp1"},
+            {"op": "lookup_default", "inputs": ["등급", "본인부담률", 0], "output": "rate"},
+            {"op": "multiply", "inputs": ["월한도액", "rate"], "output": "temp1"},
             {"op": "rounddown", "inputs": ["temp1", -2], "output": "temp2"},
-            {"op": "cap_max", "inputs": ["temp2", "본인부담금상한액"], "output": "본인부담금"}
+            {"op": "cap_max", "inputs": ["temp2", "본인부담금상한액"], "output": "temp3"},
+            {"op": "lookup_default", "inputs": ["등급", "본인부담금_고정액", "temp3"], "output": "본인부담금"}
+        ]
+    },
+    {
+        "field": "확장형본인부담금",
+        "params": ["등급", "확장형월한도액", "본인부담금상한액"],
+        "steps": [
+            {"op": "lookup_default", "inputs": ["등급", "본인부담률", 0], "output": "rate"},
+            {"op": "multiply", "inputs": ["확장형월한도액", "rate"], "output": "temp1"},
+            {"op": "rounddown", "inputs": ["temp1", -2], "output": "temp2"},
+            {"op": "cap_max", "inputs": ["temp2", "본인부담금상한액"], "output": "temp3"},
+            {"op": "lookup_default", "inputs": ["등급", "확장형본인부담금_고정액", "temp3"], "output": "확장형본인부담금"}
         ]
     },
     {
@@ -65,6 +78,16 @@ def resolve_operand(operand, variables: dict):
     return operand
 
 
+def resolve_step_inputs(step: StepFormat, variables: dict, params: dict):
+    resolved = []
+    for raw in step.inputs:
+        if type(raw) is str and raw in params:
+            resolved.append(params[raw])
+        else:
+            resolved.append(resolve_operand(raw, variables))
+    return resolved
+
+
 def round_down(value, digits):
     factor = 10 ** (-digits)
     return math.floor(value / factor) * factor
@@ -75,26 +98,26 @@ def round_up(value, digits):
     return math.ceil(value / factor) * factor
 
 
-def calculate_step(step: StepFormat, variables: dict, opnd1=None, opnd2=None):
-    if opnd1 is None:
-        opnd1 = resolve_operand(step.inputs[0], variables)
-    if opnd2 is None:
-        opnd2 = resolve_operand(step.inputs[1], variables)
+def calculate_step(step: StepFormat, variables: dict, params: dict):
+    opnds = resolve_step_inputs(step, variables, params)
 
     if step.op == "add":
-        output_value = opnd1 + opnd2
+        output_value = opnds[0] + opnds[1]
     elif step.op == "subtract":
-        output_value = opnd1 - opnd2
+        output_value = opnds[0] - opnds[1]
     elif step.op == "multiply":
-        output_value = opnd1 * opnd2
+        output_value = opnds[0] * opnds[1]
     elif step.op == "divide":
-        output_value = opnd1 / opnd2
+        output_value = opnds[0] / opnds[1]
     elif step.op == "rounddown":
-        output_value = round_down(opnd1, opnd2)
+        output_value = round_down(opnds[0], opnds[1])
     elif step.op == "roundup":
-        output_value = round_up(opnd1, opnd2)
+        output_value = round_up(opnds[0], opnds[1])
     elif step.op == "cap_max":
-        output_value = opnd2 if opnd1 > opnd2 else opnd1
+        output_value = opnds[1] if opnds[0] > opnds[1] else opnds[0]
+    elif step.op == "lookup_default":
+        key, table, default = opnds
+        output_value = table.get(key, default)
     else:
         raise ValueError(f"Unknown op: {step.op}")
 
@@ -111,21 +134,6 @@ def calculate_field(field_name: str, params: dict = None):
 
     variables = {}
     for step in rule.steps:
-        opnd1 = params.get(step.inputs[0])
-        opnd2 = params.get(step.inputs[1])
-        calculate_step(step, variables, opnd1, opnd2)
+        calculate_step(step, variables, params)
 
     return variables[field_name]
-
-
-print(
-    calculate_field(
-        "본인부담금",
-        {
-            "월한도액": CONSTANTS["월한도액"][13],
-            "본인부담률": CONSTANTS["본인부담률"]["다"],
-        },
-    )
-)
-
-print(calculate_field("활동보조30분심야"))
