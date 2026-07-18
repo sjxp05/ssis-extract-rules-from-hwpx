@@ -1,9 +1,11 @@
 {
 	"field": "활동보조30분단가",
+	"source": ["고시 n조 n항", "협조문 n페이지"],
+	"params": ["활동보조기본단가"],
 	"steps": [
 		{
 			"op": "multiply",
-			"inputs": ["기본단가", 0.5],
+			"inputs": ["활동보조기본단가", 0.5],
 			"output": "temp1"
 		},
 		{
