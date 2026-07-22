@@ -1,17 +1,221 @@
-{
-	"field": "활동보조30분단가",
-	"source": ["고시 n조 n항", "협조문 n페이지"],
-	"params": ["활동보조기본단가"],
-	"steps": [
-		{
-			"op": "multiply",
-			"inputs": ["활동보조기본단가", 0.5],
-			"output": "temp1"
-		},
-		{
-			"op": "rounddown",
-			"inputs": ["temp1", -1],
-			"output": "활동보조30분단가"
-		}
-	]
-}
+[
+	{
+		"field": "본인부담금",
+		"source": ["고시 n장 n절", "협조문 n페이지"],
+		"params": ["월한도액", "소득등급", "본인부담금상한액"],
+		"steps": [
+			{
+				"op": "if_eq",
+				"inputs": ["소득등급", "기초수급자"],
+				"output": "본인부담금",
+				"value": 0
+			},
+			{
+				"op": "if_eq",
+				"inputs": ["소득등급", "차상위"],
+				"output": "본인부담금",
+				"value": 20000
+			},
+			{
+				"op": "lookup",
+				"inputs": ["소득등급"],
+				"output": "temp1"
+			},
+			{
+				"op": "multiply",
+				"inputs": ["월한도액", "temp1"],
+				"output": "temp2"
+			},
+			{
+				"op": "rounddown",
+				"inputs": ["temp2", -2],
+				"output": "temp3"
+			},
+			{
+				"op": "max",
+				"inputs": ["temp3", "본인부담금상한액"],
+				"output": "본인부담금"
+			}
+		]
+	},
+	{
+		"field": "본인부담금_추가급여",
+		"source": [],
+		"params": ["월한도액", "소득등급"],
+		"steps": [
+			{
+				"op": "if_eq",
+				"inputs": ["소득등급", "기초수급자"],
+				"output": "본인부담금",
+				"value": 0
+			},
+			{
+				"op": "if_eq",
+				"inputs": ["소득등급", "차상위"],
+				"output": "본인부담금",
+				"value": 0
+			},
+			{
+				"op": "lookup",
+				"inputs": ["소득등급"],
+				"output": "temp1"
+			},
+			{
+				"op": "multiply",
+				"inputs": ["월한도액", "temp1"],
+				"output": "temp2"
+			},
+			{
+				"op": "rounddown",
+				"inputs": ["temp2", -2],
+				"output": "본인부담금"
+			}
+		]
+	},
+	{
+		"field": "정부지원금",
+		"source": [],
+		"params": ["월한도액", "본인부담금"],
+		"steps": [
+			{
+				"op": "subtract",
+				"inputs": ["월한도액", "본인부담금"],
+				"output": "정부지원금"
+			}
+		]
+	},
+	{
+		"field": "산정특례_월한도액_기본형",
+		"source": [],
+		"params": ["기본급여", "추가특성", "학교생활여부", "직장생활여부"],
+		"steps": [
+			{
+				"op": "lookup",
+				"inputs": ["추가특성"],
+				"output": "temp1"
+			},
+			{
+				"op": "lookup",
+				"inputs": ["학교생활"],
+				"output": "temp2"
+			},
+			{
+				"op": "lookup",
+				"inputs": ["직장생활"],
+				"output": "temp3"
+			},
+			{
+				"op": "if_eq",
+				"inputs": ["학교생활여부", false],
+				"output": "temp2",
+				"value": 0
+			},
+			{
+				"op": "if_eq",
+				"inputs": ["직장생활여부", false],
+				"output": "temp3",
+				"value": 0
+			},
+			{
+				"op": "add",
+				"inputs": ["기본급여", "temp1", "temp2", "temp3"],
+				"output": "산정특례_월한도액_기본형"
+			}
+		]
+	},
+	{
+		"field": "인정조사_산정특례_월한도액_확장형",
+		"source": [],
+		"params": ["월한도액_기본형", "활동보조기본단가"],
+		"steps": [
+			{
+				"op": "multiply",
+				"inputs": ["활동보조기본단가", 22],
+				"output": "temp1"
+			},
+			{
+				"op": "subtract",
+				"inputs": ["월한도액_기본형", "temp1"],
+				"output": "인정조사_산정특례_월한도액_확장형"
+			}
+		]
+	},
+	{
+		"field": "활동보조심야단가",
+		"source": [],
+		"params": ["활동보조기본단가"],
+		"steps": [
+			{
+				"op": "multiply",
+				"inputs": ["활동보조기본단가", 0.5],
+				"output": "temp1"
+			},
+			{
+				"op": "rounddown",
+				"inputs": ["temp1", -1],
+				"output": "활동보조심야단가"
+			}
+		]
+	},
+	{
+		"field": "활동보조30분단가",
+		"source": [],
+		"params": ["활동보조기본단가"],
+		"steps": [
+			{
+				"op": "multiply",
+				"inputs": ["활동보조기본단가", 0.5],
+				"output": "temp1"
+			},
+			{
+				"op": "rounddown",
+				"inputs": ["temp1", -1],
+				"output": "활동보조30분단가"
+			}
+		]
+	},
+	{
+		"field": "활동보조30분심야단가",
+		"source": [],
+		"params": ["활동보조기본단가"],
+		"steps": [
+			{
+				"op": "multiply",
+				"inputs": ["활동보조기본단가", 0.5],
+				"output": "temp1"
+			},
+			{
+				"op": "rounddown",
+				"inputs": ["temp1", -1],
+				"output": "temp2"
+			},
+			{
+				"op": "multiply",
+				"inputs": ["temp2", 1.5],
+				"output": "temp3"
+			},
+			{
+				"op": "rounddown",
+				"inputs": ["temp3", -1],
+				"output": "활동보조30분심야단가"
+			}
+		]
+	},
+	{
+		"field": "방문목욕40분단가",
+		"source": [],
+		"params": ["방문목욕기본단가"],
+		"steps": [
+			{
+				"op": "multiply",
+				"inputs": ["방문목욕기본단가", 0.8],
+				"output": "temp1"
+			},
+			{
+				"op": "rounddown",
+				"inputs": ["temp1", -1],
+				"output": "방문목욕40분단가"
+			}
+		]
+	}
+]
