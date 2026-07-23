@@ -2,23 +2,23 @@
 	{
 		"field": "본인부담금",
 		"source": ["고시 n장 n절", "협조문 n페이지"],
-		"params": ["월한도액", "소득등급", "본인부담금상한액"],
+		"params": ["등급체계구분", "월한도액", "소득등급"],
 		"steps": [
 			{
 				"op": "if_eq",
-				"inputs": ["소득등급", "기초수급자"],
+				"inputs": ["소득등급", "가"],
 				"output": "본인부담금",
 				"value": 0
 			},
 			{
 				"op": "if_eq",
-				"inputs": ["소득등급", "차상위"],
+				"inputs": ["소득등급", "나"],
 				"output": "본인부담금",
 				"value": 20000
 			},
 			{
-				"op": "lookup",
-				"inputs": ["소득등급"],
+				"op": "lookup_table",
+				"inputs": ["소득등급", "등급체계구분"],
 				"output": "temp1"
 			},
 			{
@@ -32,32 +32,37 @@
 				"output": "temp3"
 			},
 			{
-				"op": "max",
-				"inputs": ["temp3", "본인부담금상한액"],
+				"op": "lookup_constant",
+				"inputs": ["상한액", "등급체계구분"],
+				"output": "temp4"
+			},
+			{
+				"op": "cap_max",
+				"inputs": ["temp3", "temp4"],
 				"output": "본인부담금"
 			}
 		]
 	},
 	{
-		"field": "본인부담금_추가급여",
+		"field": "본인부담금_확장형",
 		"source": [],
-		"params": ["월한도액", "소득등급"],
+		"params": ["등급체계구분", "월한도액", "소득등급"],
 		"steps": [
 			{
 				"op": "if_eq",
-				"inputs": ["소득등급", "기초수급자"],
-				"output": "본인부담금",
+				"inputs": ["소득등급", "가"],
+				"output": "본인부담금_확장형",
 				"value": 0
 			},
 			{
 				"op": "if_eq",
-				"inputs": ["소득등급", "차상위"],
-				"output": "본인부담금",
+				"inputs": ["소득등급", "나"],
+				"output": "본인부담금_확장형",
 				"value": 0
 			},
 			{
-				"op": "lookup",
-				"inputs": ["소득등급"],
+				"op": "lookup_table",
+				"inputs": ["소득등급", "등급체계구분"],
 				"output": "temp1"
 			},
 			{
@@ -68,7 +73,51 @@
 			{
 				"op": "rounddown",
 				"inputs": ["temp2", -2],
-				"output": "본인부담금"
+				"output": "temp3"
+			},
+			{
+				"op": "lookup_constant",
+				"inputs": ["상한액", "등급체계구분"],
+				"output": "temp4"
+			},
+			{
+				"op": "cap_max",
+				"inputs": ["temp3", "temp4"],
+				"output": "본인부담금_확장형"
+			}
+		]
+	},
+	{
+		"field": "본인부담금_추가급여",
+		"source": [],
+		"params": ["월한도액", "소득등급"],
+		"steps": [
+			{
+				"op": "if_eq",
+				"inputs": ["소득등급", "가"],
+				"output": "본인부담금_추가급여",
+				"value": 0
+			},
+			{
+				"op": "if_eq",
+				"inputs": ["소득등급", "나"],
+				"output": "본인부담금_추가급여",
+				"value": 20000
+			},
+			{
+				"op": "lookup_table",
+				"inputs": ["소득등급", "추가급여"],
+				"output": "temp1"
+			},
+			{
+				"op": "multiply",
+				"inputs": ["월한도액", "temp1"],
+				"output": "temp2"
+			},
+			{
+				"op": "rounddown",
+				"inputs": ["temp2", -2],
+				"output": "본인부담금_추가급여"
 			}
 		]
 	},
@@ -85,22 +134,22 @@
 		]
 	},
 	{
-		"field": "산정특례_월한도액_기본형",
+		"field": "월한도액_산정특례",
 		"source": [],
 		"params": ["기본급여", "추가특성", "학교생활여부", "직장생활여부"],
 		"steps": [
 			{
-				"op": "lookup",
+				"op": "lookup_table",
 				"inputs": ["추가특성"],
 				"output": "temp1"
 			},
 			{
-				"op": "lookup",
+				"op": "lookup_table",
 				"inputs": ["학교생활"],
 				"output": "temp2"
 			},
 			{
-				"op": "lookup",
+				"op": "lookup_table",
 				"inputs": ["직장생활"],
 				"output": "temp3"
 			},
@@ -119,14 +168,14 @@
 			{
 				"op": "add",
 				"inputs": ["기본급여", "temp1", "temp2", "temp3"],
-				"output": "산정특례_월한도액_기본형"
+				"output": "월한도액_산정특례"
 			}
 		]
 	},
 	{
-		"field": "인정조사_산정특례_월한도액_확장형",
+		"field": "월한도액_확장형",
 		"source": [],
-		"params": ["월한도액_기본형", "활동보조기본단가"],
+		"params": ["월한도액_기본형"],
 		"steps": [
 			{
 				"op": "multiply",
@@ -136,14 +185,14 @@
 			{
 				"op": "subtract",
 				"inputs": ["월한도액_기본형", "temp1"],
-				"output": "인정조사_산정특례_월한도액_확장형"
+				"output": "월한도액_확장형"
 			}
 		]
 	},
 	{
 		"field": "활동보조심야단가",
 		"source": [],
-		"params": ["활동보조기본단가"],
+		"params": [],
 		"steps": [
 			{
 				"op": "multiply",
@@ -160,7 +209,7 @@
 	{
 		"field": "활동보조30분단가",
 		"source": [],
-		"params": ["활동보조기본단가"],
+		"params": [],
 		"steps": [
 			{
 				"op": "multiply",
@@ -177,7 +226,7 @@
 	{
 		"field": "활동보조30분심야단가",
 		"source": [],
-		"params": ["활동보조기본단가"],
+		"params": [],
 		"steps": [
 			{
 				"op": "multiply",

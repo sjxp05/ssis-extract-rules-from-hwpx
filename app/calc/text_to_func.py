@@ -1,5 +1,5 @@
 from app.calc.constants import CONSTANTS
-from app.calc.json_format import JsonFormat, StepFormat
+from app.calc.json_format import FieldFormat, StepFormat
 import math
 import json
 
@@ -61,7 +61,7 @@ rule_sentences = """
 
 rules_dict = json.loads(rule_sentences)
 
-rules_json = [JsonFormat(s) for s in rules_dict]
+rules_json = [FieldFormat(s) for s in rules_dict]
 
 
 def resolve_operand(operand, variables: dict):
