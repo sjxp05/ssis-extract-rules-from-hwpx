@@ -38,7 +38,7 @@ def round_up(value, digits):
 
 def calculate_step(step: StepFormat, variables: dict):
     opnds = resolve_inputs(step.inputs, variables)
-    print(opnds)
+    # print(step.inputs, opnds)
 
     if step.op == "add":
         result = sum(opnds)
@@ -75,7 +75,7 @@ def calculate_field(field_name: str, params: dict = {}):
     variables = {}
     for k, v in params.items():
         variables[k] = v
-    print(variables)
+    # print(variables)
 
     for step in rule.steps:
         calculate_step(step, variables)

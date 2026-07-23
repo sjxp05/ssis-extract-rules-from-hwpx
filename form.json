@@ -90,7 +90,7 @@
 	{
 		"field": "본인부담금_추가급여",
 		"source": [],
-		"params": ["월한도액", "소득등급"],
+		"params": ["추가특성", "소득등급"],
 		"steps": [
 			{
 				"op": "if_eq",
@@ -110,13 +110,18 @@
 				"output": "temp1"
 			},
 			{
-				"op": "multiply",
-				"inputs": ["월한도액", "temp1"],
+				"op": "lookup_table",
+				"inputs": ["추가특성"],
 				"output": "temp2"
 			},
 			{
+				"op": "multiply",
+				"inputs": ["temp1", "temp2"],
+				"output": "temp3"
+			},
+			{
 				"op": "rounddown",
-				"inputs": ["temp2", -2],
+				"inputs": ["temp3", -2],
 				"output": "본인부담금_추가급여"
 			}
 		]
@@ -136,44 +141,55 @@
 	{
 		"field": "월한도액_산정특례",
 		"source": [],
-		"params": ["기본급여", "추가특성", "학교생활여부", "직장생활여부"],
+		"params": [
+			"기본급여등급",
+			"주간활동구분",
+			"추가특성",
+			"학교생활여부",
+			"직장생활여부"
+		],
 		"steps": [
 			{
 				"op": "lookup_table",
-				"inputs": ["추가특성"],
+				"inputs": ["기본급여등급", "주간활동구분"],
 				"output": "temp1"
 			},
 			{
 				"op": "lookup_table",
-				"inputs": ["학교생활"],
+				"inputs": ["추가특성"],
 				"output": "temp2"
 			},
 			{
 				"op": "lookup_table",
-				"inputs": ["직장생활"],
+				"inputs": ["학교생활"],
 				"output": "temp3"
+			},
+			{
+				"op": "lookup_table",
+				"inputs": ["직장생활"],
+				"output": "temp4"
 			},
 			{
 				"op": "if_eq",
 				"inputs": ["학교생활여부", false],
-				"output": "temp2",
+				"output": "temp3",
 				"value": 0
 			},
 			{
 				"op": "if_eq",
 				"inputs": ["직장생활여부", false],
-				"output": "temp3",
+				"output": "temp4",
 				"value": 0
 			},
 			{
 				"op": "add",
-				"inputs": ["기본급여", "temp1", "temp2", "temp3"],
+				"inputs": ["temp1", "temp2", "temp3", "temp4"],
 				"output": "월한도액_산정특례"
 			}
 		]
 	},
 	{
-		"field": "월한도액_확장형",
+		"field": "월한도액_인정조사_확장형",
 		"source": [],
 		"params": ["월한도액_기본형"],
 		"steps": [
@@ -185,7 +201,7 @@
 			{
 				"op": "subtract",
 				"inputs": ["월한도액_기본형", "temp1"],
-				"output": "월한도액_확장형"
+				"output": "월한도액_인정조사_확장형"
 			}
 		]
 	},
@@ -253,16 +269,21 @@
 	{
 		"field": "방문목욕40분단가",
 		"source": [],
-		"params": ["방문목욕기본단가"],
+		"params": ["서비스종류"],
 		"steps": [
 			{
-				"op": "multiply",
-				"inputs": ["방문목욕기본단가", 0.8],
+				"op": "lookup_table",
+				"inputs": ["서비스종류"],
 				"output": "temp1"
 			},
 			{
+				"op": "multiply",
+				"inputs": ["temp1", 0.8],
+				"output": "temp2"
+			},
+			{
 				"op": "rounddown",
-				"inputs": ["temp1", -1],
+				"inputs": ["temp2", -1],
 				"output": "방문목욕40분단가"
 			}
 		]
